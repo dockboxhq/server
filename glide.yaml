@@ -1,0 +1,11 @@
+package: .
+import:
+- package: github.com/gin-gonic/gin
+  version: ^1.7.2
+- package: github.com/sriharivishnu/dockbox
+  version: ^0.0.2
+  subpackages:
+  - server/controllers
+  - server/db
+  - server/middlewares
+  - server/server
