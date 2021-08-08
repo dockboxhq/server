@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -28,8 +29,10 @@ func NewRouter() *gin.Engine {
 	v1.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "Hello from dockbox API"})
 	})
-	v1.GET("/ws", func(c *gin.Context) {
-		dockerURL, err := url.Parse("ws://localhost:2375/containers/6f9d3d5a9ab7/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1")
+	v1.GET("/ws/:id", func(c *gin.Context) {
+		id, _ := c.Params.Get("id")
+		backendURL := fmt.Sprintf("ws://localhost:2375/containers/%s/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1", id)
+		dockerURL, err := url.Parse(backendURL)
 		if err != nil {
 			c.JSON(500, gin.H{"message": "Could not reach backend server"})
 			return

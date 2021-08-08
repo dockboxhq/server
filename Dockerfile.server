@@ -1,0 +1,33 @@
+ARG GO_VERSION=1.16
+
+# builder
+FROM golang:${GO_VERSION} AS builder
+
+RUN apt update
+
+WORKDIR /api
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
+RUN go build -o app main.go
+
+# Actual image
+FROM ubuntu:20.04
+
+LABEL maintainer="srihari.vishnu@gmail.com"
+LABEL version="0.1"
+LABEL description="This is the image for the dockbox server"
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && apt upgrade -y && apt install -y docker.io
+
+WORKDIR /api
+COPY --from=builder /api/app .
+
+EXPOSE 8000
+
+ENTRYPOINT ["./app"]

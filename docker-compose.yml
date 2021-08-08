@@ -1,0 +1,24 @@
+version: "3.9" # optional since v1.27.0
+services:
+  docker:
+    build:
+      context: .
+      dockerfile: Dockerfile.docker
+      args:
+        - PORT=2375
+        - DOCKER_SOCKET="UNIX-CLIENT:$HOME/Library/Containers/com.docker.docker/Data/docker.raw.sock"
+    image: dockbox/docker
+    ports:
+      - "2375:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    image: dockbox/server
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - ENVIRONMENT=development
