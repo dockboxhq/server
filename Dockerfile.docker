@@ -8,14 +8,9 @@ LABEL description="This is the image for the dockbox docker engine server"
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PORT
-ARG DOCKER_SOCKET
 
 RUN apt update && apt upgrade -y && apt install -y socat
 
-RUN echo "Running on port: ${PORT} with socket ${DOCKER_SOCKET}"
-
 EXPOSE 2375
 
-CMD socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:///var/run/docker.sock
-
-# ENTRYPOINT ["socat", "TCP-LISTEN:2375,reuseaddr,fork",  "UNIX-CLIENT:///var/run/docker.sock"]
+CMD socat TCP-LISTEN:2375,reuseaddr,fork unix:///var/run/docker.sock

@@ -1,4 +1,4 @@
-package server
+package socket
 
 // modified from https://github.com/koding/websocketproxy
 
