@@ -1,15 +1,28 @@
 package server
 
 import (
+	"time"
+
+	"github.com/dockboxhq/server/controllers"
+	"github.com/dockboxhq/server/middlewares"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sriharivishnu/dockbox/server/controllers"
-	"github.com/sriharivishnu/dockbox/server/middlewares"
 )
 
 func NewRouter() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000/*"},
+		AllowMethods:     []string{"PUT", "POST", "DELETE", "GET"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowWildcard:    true,
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	health := new(controllers.HealthController)
 
