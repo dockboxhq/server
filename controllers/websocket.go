@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/dockboxhq/server/socket"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/sriharivishnu/dockbox/server/socket"
 )
 
 var wsupgrader = websocket.Upgrader{

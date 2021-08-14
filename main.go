@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sriharivishnu/dockbox/server/db"
-	"github.com/sriharivishnu/dockbox/server/server"
+	"github.com/dockboxhq/server/server"
+	db "github.com/dockboxhq/server/services"
 
 	"github.com/joho/godotenv"
 )
