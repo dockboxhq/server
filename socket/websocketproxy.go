@@ -46,6 +46,12 @@ type WebsocketProxy struct {
 	//  Dialer contains options for connecting to the backend WebSocket server.
 	//  If nil, DefaultDialer is used.
 	Dialer *websocket.Dialer
+
+	//Called when connected
+	OnConnect func()
+
+	//Called when connection is closed
+	OnClose func()
 }
 
 // ServeHTTP implements the http.Handler that proxies WebSocket connections.
@@ -175,6 +181,7 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				break
 			}
 			err = dst.WriteMessage(msgType, msg)
+
 			if err != nil {
 				m := websocket.FormatCloseMessage(websocket.CloseNormalClosure, fmt.Sprintf("%v", err))
 				if e, ok := err.(*websocket.CloseError); ok {
@@ -188,6 +195,7 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
+	w.OnConnect()
 
 	go replicateWebsocketConn(connPub, connBackend, errClient)
 	go replicateWebsocketConn(connBackend, connPub, errBackend)
@@ -198,8 +206,9 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		message = "websocketproxy: Error when copying from backend to client: %v"
 	case err = <-errBackend:
 		message = "websocketproxy: Error when copying from client to backend: %v"
-
 	}
+	w.OnClose()
+
 	if e, ok := err.(*websocket.CloseError); !ok || e.Code == websocket.CloseAbnormalClosure {
 		log.Printf(message, err)
 	}
