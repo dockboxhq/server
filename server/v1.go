@@ -6,12 +6,11 @@ import (
 )
 
 func SetUpV1(router *gin.Engine) {
-	websocket := new(controllers.WebsocketController)
 	dockbox := new(controllers.DockboxController)
 
 	v1 := router.Group("v1")
-	v1.GET("/ws/:id", websocket.ContainerConnect)
 
 	dockboxGroup := v1.Group("dockbox")
+	dockboxGroup.GET("/ws/:id", dockbox.Connect)
 	dockboxGroup.POST("", dockbox.Create)
 }
