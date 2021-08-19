@@ -15,6 +15,7 @@ type configType struct {
 	DATABASE_PORT      string
 	DATABASE_USER      string
 	DATABASE_PASSWORD  string
+	MOUNT_POINT        string
 }
 
 var Config *configType = &configType{}

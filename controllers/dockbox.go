@@ -14,6 +14,7 @@ import (
 	"github.com/dockboxhq/server/models"
 	"github.com/dockboxhq/server/services"
 	"github.com/dockboxhq/server/socket"
+	"github.com/dockboxhq/server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -27,8 +28,6 @@ type CreatePayload struct {
 	Url string `json:"url"`
 }
 
-const mountPoint = "/Users/sriharivishnu/Desktop/dev/dockbox/cli/temp"
-
 func (ws DockboxController) Create(c *gin.Context) {
 
 	var payload CreatePayload
@@ -41,13 +40,13 @@ func (ws DockboxController) Create(c *gin.Context) {
 	var dockboxID = uuid.New().String()
 	var customID = shortuuid.New()
 
-	errGetData := getRepositoryData(payload.Url, filepath.Join(mountPoint, dockboxID))
+	errGetData := getRepositoryData(payload.Url, filepath.Join(utils.Config.MOUNT_POINT, dockboxID))
 	if errGetData != nil {
 		c.JSON(400, gin.H{"error": fmt.Sprintf("Error fetching data from repository: %v. Please check your URL and try again.", errGetData)})
 		return
 	}
 
-	containerID, err := services.CreateContainerForDockbox(filepath.Join(mountPoint, dockboxID))
+	containerID, err := services.CreateContainerForDockbox(filepath.Join(utils.Config.MOUNT_POINT, dockboxID))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -111,7 +110,7 @@ func (d DockboxController) Connect(c *gin.Context) {
 	status, statusErr := services.GetContainerStatus(dockbox.ContainerId.String)
 	// The container ID is null; create a new container
 	if !dockbox.ContainerId.Valid || status == nil {
-		containerID, err := services.CreateContainerForDockbox(filepath.Join(mountPoint, dockbox.ID))
+		containerID, err := services.CreateContainerForDockbox(filepath.Join(utils.Config.MOUNT_POINT, dockbox.ID))
 		if err != nil {
 			c.JSON(404, gin.H{"message": "Could not start dockbox", "error": err.Error()})
 			return
@@ -143,7 +142,7 @@ func (d DockboxController) Connect(c *gin.Context) {
 		}
 	}
 
-	DOCKER_HOST := os.Getenv("DOCKER_SERVER_HOST")
+	DOCKER_HOST := utils.Config.DOCKER_SERVER_HOST
 
 	backendURL := fmt.Sprintf("ws://%s/containers/%s/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1", DOCKER_HOST, dockbox.ContainerId.String)
 	log.Println(backendURL)

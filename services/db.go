@@ -13,7 +13,7 @@ var schema = `
 create table if not exists dockbox (
     id CHAR(36) PRIMARY KEY default uuid(),
     custom_id VARCHAR(64) default null UNIQUE,
-    container_id CHAR(64) UNIQUE,
+    container_id CHAR(64) default null UNIQUE,
     source TEXT,
     created_at timestamp default now(),
     last_modified timestamp default now() ON UPDATE now()
