@@ -11,6 +11,7 @@ func SetUpV1(router *gin.Engine) {
 	v1 := router.Group("v1")
 
 	dockboxGroup := v1.Group("dockbox")
-	dockboxGroup.GET("/ws/:id", dockbox.Connect)
+	dockboxGroup.GET("/:id/ws", dockbox.Connect)
+	dockboxGroup.GET("/:id/files", dockbox.Connect)
 	dockboxGroup.POST("", dockbox.Create)
 }

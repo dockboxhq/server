@@ -19,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/hashicorp/go-getter"
+	"github.com/karrick/godirwalk"
 	"github.com/lithammer/shortuuid/v3"
 )
 
@@ -142,9 +143,7 @@ func (d DockboxController) Connect(c *gin.Context) {
 		}
 	}
 
-	DOCKER_HOST := utils.Config.DOCKER_SERVER_HOST
-
-	backendURL := fmt.Sprintf("ws://%s/containers/%s/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1", DOCKER_HOST, dockbox.ContainerId.String)
+	backendURL := fmt.Sprintf("ws://%s/containers/%s/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1", utils.Config.DOCKER_SERVER_HOST, dockbox.ContainerId.String)
 	log.Println(backendURL)
 	dockerURL, err := url.Parse(backendURL)
 	if err != nil {
@@ -179,5 +178,58 @@ func (d DockboxController) Connect(c *gin.Context) {
 	}
 
 	proxy.ServeHTTP(c.Writer, c.Request)
+
+}
+
+type Resource struct {
+	Name     string
+	Path     string
+	Hash     string
+	Type     string
+	Children []*Resource
+}
+
+func (d DockboxController) GetFilesystem(c *gin.Context) {
+	id, _ := c.Params.Get("id")
+
+	if id == "" {
+		c.AbortWithStatusJSON(500, map[string]string{"error": "no ID supplied"})
+	}
+	dirPath := filepath.Join(utils.Config.MOUNT_POINT, id)
+	if _, err := os.Stat(dirPath); err != nil {
+		c.AbortWithStatusJSON(500, map[string]string{"error": "ID not found"})
+	}
+
+	rootNode := &Resource{
+		Name:     filepath.Base(dirPath),
+		Path:     "/app",
+		Children: make([]*Resource, 0),
+	}
+	curRoot := rootNode
+
+	godirwalk.Walk(dirPath,
+		&godirwalk.Options{
+			Callback: func(osPathname string, d *godirwalk.Dirent) error {
+				//Compute hash
+				//Add Resource to children
+				//update root hash
+				name := filepath.Base(osPathname)
+				resource := &Resource{
+					Name: name,
+					Path: filepath.Join(curRoot.Path, name),
+				}
+				curRoot.Children = append(curRoot.Children, resource)
+				return nil
+			},
+			ErrorCallback: func(path string, err error) godirwalk.ErrorAction {
+				log.Printf("Error accessing file: %s", path)
+				return godirwalk.SkipNode
+			},
+			PostChildrenCallback: func(path string, entry *godirwalk.Dirent) error {
+
+				return nil
+			},
+		},
+	)
 
 }
