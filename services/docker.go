@@ -2,22 +2,83 @@ package services
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
+	"path/filepath"
 
+	cli "github.com/dockboxhq/cli/cmd"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"github.com/karrick/godirwalk"
 )
 
 var DockerCli *client.Client
+
+func analyze(mountPath string) (imagename string) {
+	stats := make(map[string]int)
+	godirwalk.Walk(mountPath,
+		&godirwalk.Options{
+			Callback: func(osPathname string, d *godirwalk.Dirent) error {
+				log.Println(osPathname, d.Name())
+				if !d.IsDir() {
+					file_extension := filepath.Ext(d.Name())
+					language_name := cli.ExtensionToLanguage[file_extension]
+					if len(language_name) > 0 {
+						stats[language_name] += 1
+					}
+				}
+				return nil
+			},
+			ErrorCallback: func(path string, err error) godirwalk.ErrorAction {
+				log.Printf("Error accessing file: %s", path)
+				return godirwalk.SkipNode
+			},
+			Unsorted: true,
+		},
+	)
+
+	sorted := cli.SortMap(stats)
+	for i := len(sorted) - 1; i >= 0; i-- {
+		if val, ok := cli.LanguageToImageMapper[sorted[i].Key]; ok {
+			return val.Image
+		}
+	}
+
+	return cli.LanguageToImageMapper["unknown"].Image
+
+}
+
+func pullImage(imageName string) error {
+	ctx := context.Background()
+	if _, _, err := DockerCli.ImageInspectWithRaw(ctx, imageName); err == nil {
+		return nil
+	}
+	reader, err := DockerCli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	if err != nil {
+		return nil
+	}
+	defer reader.Close()
+	if _, err := ioutil.ReadAll(reader); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func CreateContainerForDockbox(mountPath string) (string, error) {
 	cli := DockerCli
 	ctx := context.Background()
 
+	imageName := analyze(mountPath)
+	err := pullImage(imageName)
+	if err != nil {
+		return "", err
+	}
+
 	createResponse, errCreate := cli.ContainerCreate(ctx, &container.Config{
-		Image:        "ubuntu:latest",
+		Image:        imageName,
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,

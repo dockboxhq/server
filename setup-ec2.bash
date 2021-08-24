@@ -41,11 +41,11 @@ sudo mkdir -p /etc/systemd/system/docker.service.d && touch /etc/systemd/system/
 
 sudo echo "[Service]
 ExecStart=
-ExecStart=/usr/bin/dockerd" >> /etc/systemd/system/docker.service.d/override.conf
+ExecStart=/usr/bin/dockerd" > /etc/systemd/system/docker.service.d/override.conf
 
 sudo touch /etc/docker/daemon.json
 
-sudo echo '{"hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]}' >> /etc/docker/daemon.json
+sudo echo '{"hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]}' > /etc/docker/daemon.json
 
 
 echo "Starting services"
@@ -74,7 +74,7 @@ Restart=always
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/api.service
+WantedBy=multi-user.target" > /etc/systemd/system/api.service
 
 echo "Starting Reboot in 5 seconds"
 sleep 5
