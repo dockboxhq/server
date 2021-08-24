@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -13,6 +14,11 @@ import (
 var DockerCli *client.Client
 
 func CreateContainerForDockbox(mountPath string) (string, error) {
+	_, err := os.Stat(mountPath)
+	if err != nil {
+		return "", err
+	}
+
 	cli := DockerCli
 	ctx := context.Background()
 

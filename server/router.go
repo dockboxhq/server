@@ -15,7 +15,7 @@ func NewRouter() *gin.Engine {
 	router.Use(gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000/*", "http://dockbox.ca/*", "https://dockbox.ca/*", "https://*.dockbox.ca/*", "http://*.dockbox.ca/*"},
+		AllowOrigins:     []string{"http://localhost:3000/*", "http://dockbox.ca/*", "https://dockbox.ca/*", "https://www.dockbox.ca/*", "http://www.dockbox.ca/*"},
 		AllowMethods:     []string{"PUT", "POST", "DELETE", "GET"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
